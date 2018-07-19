@@ -1,10 +1,11 @@
 class Field
   attr_accessor :ships, :field_map, :empty_items
 
-  FIELD_X = (1..10)
-  FIELD_Y = (1..10)
+  FIELD_X = 1..10
+  FIELD_Y = 1..10
   ORIENTATION_DOWN = 1
   ORIENTATION_RIGHT = 2
+  FIELD_Y_CAPTURES = 'a'..'j'
 
   def setup
     res = false
@@ -37,10 +38,12 @@ class Field
   end
 
   def show
+    puts '   ' + Field::FIELD_X.to_a.join('  ')
     FIELD_Y.each do |y|
+      print "%2s" % Field::FIELD_Y_CAPTURES.to_a[y-1]
       FIELD_X.each do |x|
-        item = find(x,y) || FieldItem.new(x: x, y: y, ship_number: nil)
-        print "|#{item.status}"
+        item = find(x,y) || FieldItem.new(x: x, y: y, ship: nil)
+        print "|%2s" % item.show_state
       end
       print '|'
       puts
@@ -48,14 +51,14 @@ class Field
     ''
   end
 
-  def shoot(x,y)
-    unless item = find(x,y)
-      item = FieldItem.new(x: x, y: y, ship_number: nil)
+  def shoot(coord)
+    y_symb,x = coord.to_s.split('')
+    y = Field::FIELD_Y_CAPTURES.to_a.index(y_symb).to_i + 1
+    unless item = find(x.to_i,y)
+      item = FieldItem.new(x: x.to_i, y: y, ship: nil)
       self.empty_items << item
     end
     item.shoot
-    ship = ships.find{|sh| sh.items.include?(item)}
-    ship.try_to_eliminate unless ship.nil?
     show
   end
 

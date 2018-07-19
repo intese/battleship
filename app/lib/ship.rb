@@ -1,10 +1,10 @@
 class Ship
   attr_accessor :items
-  attr_reader :size, :ship_number
+  attr_reader :size, :count
 
   def initialize(size:, count:)
     @size = size
-    @ship_number = "#{size}#{count}"
+    @count = count
   end
 
   def install(x_start:, y_start:, orientation:, ships:)
@@ -12,10 +12,12 @@ class Ship
     size.times do |i|
       case orientation
       when Field::ORIENTATION_DOWN
-        item = ShipItem.new(x: x_start, y: y_start - i, ship_number: ship_number)
+        x, y = x_start, y_start - i
       when Field::ORIENTATION_RIGHT
-        item = ShipItem.new(x: x_start + i, y: y_start, ship_number: ship_number)
+        x, y = x_start + i, y_start
       end
+
+      item = ShipItem.new(x: x, y: y, ship: self)
 
       if valid?(item) && distance_min(item, ships) > 1
         self.items << item
@@ -27,7 +29,7 @@ class Ship
   end
 
   def to_s
-    "size: #{size}, items: #{items}"
+    "size: #{size}, items: #{items.join("\n")}"
   end
 
   def valid?(item)
@@ -45,20 +47,7 @@ class Ship
     end.min
   end
 
-  def ==(item_2)
-    items.each do |item_1|
-      return ship if item_1 == item_2
-    end
-    nil
-  end
-
-  def try_to_eliminate
-    items.each do |item|
-      item.status = '$$'
-    end if dead?
-  end
-
   def dead?
-    items.select{|item| item.status == ' X'}.size == items.size
+    items.map(&:dead).all?
   end
 end

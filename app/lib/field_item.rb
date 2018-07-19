@@ -1,5 +1,9 @@
 class FieldItem < Item
-  def shoot
-    self.status = ' .'
+  def dead_status
+    '.'
+  end
+
+  def show_state
+    dead ? dead_status : ''
   end
 end

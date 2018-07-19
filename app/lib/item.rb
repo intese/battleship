@@ -1,13 +1,17 @@
 class Item
-  attr_reader :x, :y, :ship_number
-  attr_accessor :status
+  attr_reader :x, :y, :ship
+  attr_accessor :status, :dead
 
-  def initialize(x:, y:, ship_number:)
-    @x, @y, @ship, @status = x, y, ship_number, ship_number
-    @status = '  ' if ship_number.nil?
+  def initialize(x:, y:, ship:)
+    @x, @y, @ship = x, y, ship
+    @dead = false
   end
 
   def to_s
-    "x: #{x}, y: #{y}, status: #{status}, ship_number: #{ship_number}"
+    "x: #{x}, y: #{y}, status: #{status}, ship: #{ship.ship_number}"
+  end
+
+  def shoot
+    @dead = true
   end
 end
