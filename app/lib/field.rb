@@ -1,5 +1,5 @@
 class Field
-  attr_accessor :ships, :field_map
+  attr_accessor :ships, :field_map, :empty_items
 
   FIELD_X = (1..10)
   FIELD_Y = (1..10)
@@ -11,16 +11,16 @@ class Field
     begin
       res = attempt_to_setup
     end while !res
-    save
     show
   end
 
   def attempt_to_setup
     self.ships = []
+    self.empty_items = []
 
     { 1 => 5, 2 => 4, 3 => 3, 4 => 2, 5 => 1 }.each_pair do |count, size|
-      count.times do
-        ship = Ship.new(size)
+      count.times do |i|
+        ship = Ship.new(size: size, count: i+1)
         installed = false
         count_of_tests = 100
         begin
@@ -36,23 +36,11 @@ class Field
     true
   end
 
-  def save
-    self.field_map = [].tap do |arr|
-      FIELD_Y.each do |y|
-        FIELD_X.each do |x|
-          res = ships.find{|ship| ship == [x,y]}
-          sym = res ? "#{res.size}" : ' '
-          arr << {x: x, y: y, sym: sym}
-        end
-      end
-    end
-  end
-
   def show
     FIELD_Y.each do |y|
       FIELD_X.each do |x|
-        cell = find(x,y)
-        print "| #{cell[:sym]}"
+        item = find(x,y) || FieldItem.new(x: x, y: y, ship_number: nil)
+        print "|#{item.status}"
       end
       print '|'
       puts
@@ -61,12 +49,21 @@ class Field
   end
 
   def shoot(x,y)
-    cell = find(x,y)
-    cell[:sym] = cell[:sym].to_i > 0 ? 'X' : '.'
+    unless item = find(x,y)
+      item = FieldItem.new(x: x, y: y, ship_number: nil)
+      self.empty_items << item
+    end
+    item.shoot
+    ship = ships.find{|sh| sh.items.include?(item)}
+    ship.try_to_eliminate unless ship.nil?
     show
   end
 
   def find(x,y)
-    field_map.find{|hsh| hsh[:x] == x && hsh[:y] == y}
+    all_items.find{|item| item.x == x && item.y == y}
+  end
+
+  def all_items
+    ships.map(&:items).flatten + empty_items
   end
 end

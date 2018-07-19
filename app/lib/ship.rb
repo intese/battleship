@@ -1,23 +1,24 @@
 class Ship
-  attr_accessor :coordinates
-  attr_reader :size
+  attr_accessor :items
+  attr_reader :size, :ship_number
 
-  def initialize(size)
+  def initialize(size:, count:)
     @size = size
+    @ship_number = "#{size}#{count}"
   end
 
   def install(x_start:, y_start:, orientation:, ships:)
-    self.coordinates  = []
+    self.items  = []
     size.times do |i|
       case orientation
       when Field::ORIENTATION_DOWN
-        coord = [x_start, y_start - i]
+        item = ShipItem.new(x: x_start, y: y_start - i, ship_number: ship_number)
       when Field::ORIENTATION_RIGHT
-        coord = [x_start + i, y_start]
+        item = ShipItem.new(x: x_start + i, y: y_start, ship_number: ship_number)
       end
 
-      if valid?(coord) && distance_min(coord, ships) > 1
-        self.coordinates << coord
+      if valid?(item) && distance_min(item, ships) > 1
+        self.items << item
       else
         return false
       end
@@ -26,28 +27,38 @@ class Ship
   end
 
   def to_s
-    "size: #{size}, coordinates: #{coordinates}"
+    "size: #{size}, items: #{items}"
   end
 
-  def valid?(coord)
-    Field::FIELD_X.include?(coord[0]) && Field::FIELD_Y.include?(coord[1])
+  def valid?(item)
+    Field::FIELD_X.include?(item.x) && Field::FIELD_Y.include?(item.y)
   end
 
-  def distance_min(coord1, ships)
+  def distance_min(item_1, ships)
     [].tap do |distance|
       distance << 2
       ships.each do |ship|
-        ship.coordinates.each do |coord2|
-          distance << Math.sqrt((coord1[0] - coord2[0])**2 + (coord1[1] - coord2[1])**2).to_i
+        ship.items.each do |item_2|
+          distance << Math.sqrt((item_1.x - item_2.x)**2 + (item_1.y - item_2.y)**2).to_i
         end
       end
     end.min
   end
 
-  def ==(pos)
-    coordinates.each do |coord|
-      return size if coord == pos
+  def ==(item_2)
+    items.each do |item_1|
+      return ship if item_1 == item_2
     end
     nil
+  end
+
+  def try_to_eliminate
+    items.each do |item|
+      item.status = '$$'
+    end if dead?
+  end
+
+  def dead?
+    items.select{|item| item.status == ' X'}.size == items.size
   end
 end
