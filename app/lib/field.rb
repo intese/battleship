@@ -67,6 +67,6 @@ class Field
   end
 
   def find(x,y)
-    field_map.find{|hsh| hsh[:x] == y && hsh[:y] == y}
+    field_map.find{|hsh| hsh[:x] == x && hsh[:y] == y}
   end
 end
